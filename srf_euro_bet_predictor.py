@@ -77,17 +77,18 @@ def process_data(html_content):
     # Convert the list of dictionaries to a DataFrame
     ergebnis_df = pd.DataFrame(ergebnis_data)
 
+    
     # Convert Odds to Probabilities (handle comma as decimal separator)
     tipp_odds_df['Odds'] = tipp_odds_df['Odds'].str.replace(',', '.').astype(float)
     tipp_odds_df['Probability'] = 1 / tipp_odds_df['Odds']
-    tipp_odds_df['Normalized_Probability'] = tipp_odds_df['Probability'] / tipp_odds_df['Probability'].sum()
+    tipp_odds_df['Probability'] = tipp_odds_df['Probability'] / tipp_odds_df['Probability'].sum()
 
     # Convert result odds to probabilities (handle comma as decimal separator)
     ergebnis_df['Probability'] = ergebnis_df['Probability'].str.replace(',', '.').astype(float)
     ergebnis_df = ergebnis_df[ergebnis_df['Probability'] != 250]  # Exclude rows with odds of 250
     ergebnis_df = ergebnis_df[ergebnis_df['Result'] != 'X:X']  # Exclude 'X:X' result
     ergebnis_df['Probability'] = 1 / ergebnis_df['Probability']
-    ergebnis_df['Normalized_Probability'] = ergebnis_df['Probability'] / ergebnis_df['Probability'].sum()
+    ergebnis_df['Probability'] = ergebnis_df['Probability'] / ergebnis_df['Probability'].sum()
 
     # Extract country names
     home_team = tipp_odds_df.loc[tipp_odds_df['Country'] != 'Draw', 'Country'].values[0]
@@ -101,28 +102,14 @@ def process_data(html_content):
     ergebnis_df['Goal_Difference'] = ergebnis_df['Result'].apply(calculate_goal_difference)
 
     # Create a table showing the probability of each goal difference
-    goal_difference_probabilities = ergebnis_df.groupby('Goal_Difference')['Normalized_Probability'].sum().reset_index()
-    goal_difference_probabilities = goal_difference_probabilities.rename(columns={'Normalized_Probability': 'Probability'})
+    goal_difference_probabilities = ergebnis_df.groupby('Goal_Difference')['Probability'].sum().reset_index()
+    goal_difference_probabilities = goal_difference_probabilities.rename(columns={'Probability': 'Probability'})
 
     # Calculate the expected points for guessing the outcome correctly
-    tipp_odds_df['Expectation'] = tipp_odds_df['Normalized_Probability'] * 5
+    tipp_odds_df['Expectation'] = tipp_odds_df['Probability'] * 5
 
-    # Normalize probabilities within each group
-    home_win_probabilities = goal_difference_probabilities[goal_difference_probabilities['Goal_Difference'] > 0].copy()
-    away_win_probabilities = goal_difference_probabilities[goal_difference_probabilities['Goal_Difference'] < 0].copy()
-    draw_probabilities = goal_difference_probabilities[goal_difference_probabilities['Goal_Difference'] == 0].copy()
-
-    home_win_probabilities['Normalized_Probability'] = home_win_probabilities['Probability'] / home_win_probabilities['Probability'].sum()
-    away_win_probabilities['Normalized_Probability'] = away_win_probabilities['Probability'] / away_win_probabilities['Probability'].sum()
-    draw_probabilities['Normalized_Probability'] = draw_probabilities['Probability'] / draw_probabilities['Probability'].sum()
-
-    # Calculate the expected points for guessing the goal difference correctly within each group
-    home_win_probabilities['Expectation'] = home_win_probabilities['Normalized_Probability'] * 3
-    away_win_probabilities['Expectation'] = away_win_probabilities['Normalized_Probability'] * 3
-    draw_probabilities['Expectation'] = draw_probabilities['Normalized_Probability'] * 3
-
-    # Merge the normalized probabilities back into the goal_difference_probabilities DataFrame
-    goal_difference_probabilities = pd.concat([home_win_probabilities, away_win_probabilities, draw_probabilities])
+    # Calculate the expected points for guessing the goal difference correctly
+    goal_difference_probabilities['Expectation'] = goal_difference_probabilities['Probability'] * 3
 
     # Calculate the total expected points for each goal difference
     goal_difference_probabilities['Expectation_sum'] = goal_difference_probabilities.apply(
@@ -133,7 +120,7 @@ def process_data(html_content):
     )
 
     # Multiply ergebnis_df probabilities with 2
-    ergebnis_df['Expectation'] = ergebnis_df['Normalized_Probability'] * 2
+    ergebnis_df['Expectation'] = ergebnis_df['Probability'] * 2
 
     # Add the expectation_sum to the score expectation
     def add_goal_difference_expectation(row):
