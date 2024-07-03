@@ -3,6 +3,10 @@
 
 This project provides a tool to predict betting outcomes for Euro 2024 matches using data scraped from Tipico. The script calculates expected values for various betting scenarios and displays the results in the terminal.
 
+## Disclaimer
+
+I do not support any kind of sports betting and advise everyone against placing bets. This tool is for educational purposes only.
+
 ## Requirements
 
 - Python 3.x
@@ -18,12 +22,34 @@ You can install the necessary dependencies using:
 pip install selenium beautifulsoup4 pandas requests webdriver_manager
 ```
 
+### Browser
+
+To run the script, you need to have the Chrome browser installed on your system. The path to the Chrome executable must be specified correctly in your environment. It is also possible to use other browsers and drivers as long as they are supported by Selenium. The driver can be adjusted in the script:
+
+```python
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+
+options = Options()
+options.add_argument("--headless")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+```
+
+### VPN
+
+It is necessary to have an internet connection in Germany or use a VPN, as the betting website does not work outside of Germany. Different betting sites can be used, but the code has to be adjusted accordingly to scrape and process data from those sites.
+
 ## Usage
 
 To run the script, execute the following command in your terminal:
 
 ```bash
-python3 srf_euro_bet_predictor.py
+(base) ➜ python3 srf_euro_bet_predictor.py
 ```
 
 You will be prompted to enter the URL of the Tipico page you want to scrape. For example:
@@ -92,4 +118,4 @@ Ergebnis DataFrame:
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
